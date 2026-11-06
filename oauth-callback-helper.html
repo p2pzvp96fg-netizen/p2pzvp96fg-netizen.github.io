@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'; base-uri 'none'; connect-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'; base-uri 'none'; connect-src http://127.0.0.1:8765">
   <meta name="robots" content="noindex,nofollow">
   <title>Tesla OAuth callback helper</title>
   <style>
@@ -65,7 +65,23 @@
         if (valid) {
           input.value = window.location.origin + '/callback' + originalSearch;
           input.setAttribute('data-oauth-url-ready', 'true');
-          setStatus('OAuth response held in masked local field. Save it in the local receiver.');
+          // Directly save into the user's own single-use loopback receiver.
+          // Binding to 127.0.0.1 ensures it is not a public listener.
+          fetch('http://127.0.0.1:8765/callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: input.value,
+            credentials: 'omit',
+            referrerPolicy: 'no-referrer',
+            redirect: 'error'
+          }).then(function (response) {
+            if (!response.ok) throw new Error('Local validation failed');
+            input.value = '';
+            input.setAttribute('data-local-callback-saved', 'true');
+            setStatus('OAuth callback validated and saved locally.');
+          }).catch(function () {
+            setStatus('Local receiver unavailable or rejected the callback.');
+          });
           // Remove the one-time query from history and address-bar exposure.
           window.history.replaceState(null, '', '/oauth-callback-helper.html');
         } else {
