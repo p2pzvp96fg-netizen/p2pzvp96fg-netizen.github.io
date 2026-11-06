@@ -59,10 +59,10 @@
     if (originalSearch) {
       try {
         var params = new URLSearchParams(originalSearch);
-        var allowedKeys = ['code', 'state'];
-        var keys = Array.from(params.keys());
-        var valid = keys.every(function (key) { return allowedKeys.indexOf(key) !== -1; });
-        if (valid && params.getAll('code').length === 1 && params.getAll('state').length === 1) {
+        // Tesla may append non-secret metadata (e.g. issuer or locale).
+        // Preserve the full URL, requiring one code and one state value.
+        var valid = params.getAll('code').length === 1 && params.getAll('state').length === 1;
+        if (valid) {
           input.value = window.location.origin + '/callback' + originalSearch;
           input.setAttribute('data-oauth-url-ready', 'true');
           setStatus('OAuth response held in masked local field. Save it in the local receiver.');
