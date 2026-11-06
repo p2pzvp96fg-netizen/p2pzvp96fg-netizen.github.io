@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'; base-uri 'none'; connect-src 'none'">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Tesla OAuth callback helper</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.45; color: #111; }
+    h1 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    p { margin: 0.6rem 0; }
+    label { display: block; font-weight: 600; margin-top: 1.2rem; margin-bottom: 0.4rem; }
+    input[type="password"] { width: 100%; box-sizing: border-box; padding: 0.6rem 0.7rem; font-size: 1rem; }
+    .actions { margin-top: 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    button { padding: 0.55rem 0.9rem; font-size: 0.95rem; cursor: pointer; }
+    .note { color: #333; font-size: 0.95rem; }
+    .status { min-height: 1.2rem; margin-top: 0.75rem; font-size: 0.9rem; color: #064; }
+  </style>
+</head>
+<body>
+  <h1>Tesla OAuth callback helper</h1>
+  <p class="note">This is a user-owned local receiving helper on your own GitHub Pages domain. It is not Tesla login, does not ask for a Tesla account or password, and does not impersonate Tesla.</p>
+  <p class="note">It only holds one secure-form-injected callback URL in the field below. Loading this static page is the only network request. There is no form submit, no storage, no analytics, no referrers, and no outbound requests after load.</p>
+
+  <label for="oauth-callback-input">Tesla OAuth callback URL</label>
+  <input
+    id="oauth-callback-input"
+    name="oauth-callback-input"
+    type="password"
+    placeholder="Secure form fills this field; do not paste in chat"
+    autocomplete="off"
+    spellcheck="false"
+    autocapitalize="off"
+    autocorrect="off"
+  >
+
+  <div class="actions">
+    <button type="button" id="copy-btn">Copy callback securely</button>
+    <button type="button" id="close-btn">Close window</button>
+  </div>
+  <p id="status" class="status" aria-live="polite"></p>
+
+  <script>
+    (function () {
+      var input = document.getElementById('oauth-callback-input');
+      var status = document.getElementById('status');
+      var copyBtn = document.getElementById('copy-btn');
+      var closeBtn = document.getElementById('close-btn');
+
+      function setStatus(msg) {
+        status.textContent = msg;
+      }
+
+      window.addEventListener('load', function () {
+        input.focus();
+      });
+
+      copyBtn.addEventListener('click', function () {
+        var value = input.value || '';
+        if (!value) {
+          setStatus('Field is empty.');
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(value).then(function () {
+            setStatus('Copied to clipboard. Value is not shown on this page.');
+          }).catch(function () {
+            setStatus('Clipboard copy failed. Try again or use a browser that allows clipboard writes.');
+          });
+        } else {
+          setStatus('Clipboard API unavailable in this browser.');
+        }
+      });
+
+      closeBtn.addEventListener('click', function () {
+        window.close();
+      });
+    })();
+  </script>
+</body>
+</html>
