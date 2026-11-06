@@ -53,7 +53,27 @@
       }
 
       window.addEventListener('load', function () {
-        input.focus();
+        // Same-origin callback data stays in this page's memory only.
+    // Never log, persist or transmit the OAuth response.
+    var originalSearch = window.location.search;
+    if (originalSearch) {
+      try {
+        var params = new URLSearchParams(originalSearch);
+        var allowedKeys = ['code', 'state'];
+        var keys = Array.from(params.keys());
+        var valid = keys.every(function (key) { return allowedKeys.indexOf(key) !== -1; });
+        if (valid && params.getAll('code').length === 1 && params.getAll('state').length === 1) {
+          input.value = window.location.origin + '/callback' + originalSearch;
+          input.setAttribute('data-oauth-url-ready', 'true');
+          setStatus('OAuth response held in masked local field. Save it in the local receiver.');
+          // Remove the one-time query from history and address-bar exposure.
+          window.history.replaceState(null, '', '/oauth-callback-helper.html');
+        } else {
+          setStatus('Unexpected callback parameters. No OAuth values have been processed.');
+        }
+      } catch (e) { setStatus('Could not receive the callback locally.'); }
+    }
+    input.focus();
       });
 
       copyBtn.addEventListener('click', function () {
